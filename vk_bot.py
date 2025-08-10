@@ -17,16 +17,20 @@ def detect_intent_texts(project_id, session_id, text, language_code="ru"):
         request={"session": session, "query_input": query_input}
     )
 
+    if response.query_result.intent.is_fallback:
+        return None
+
     return response.query_result.fulfillment_text
 
 
 def answer_with_dialogflow(event, vk_api):
     response_text = detect_intent_texts(PROJECT_ID, event.user_id, event.text)
-    vk_api.messages.send(
-        user_id=event.user_id,
-        message=response_text,
-        random_id=random.randint(1, 1000)
-    )
+    if response_text:
+        vk_api.messages.send(
+            user_id=event.user_id,
+            message=response_text,
+            random_id=random.randint(1, 1000)
+        )
 
 
 if __name__ == "__main__":
