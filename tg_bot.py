@@ -1,35 +1,22 @@
 import os
 from environs import env
-from google.cloud import dialogflow_v2 as dialogflow
 
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+
+from dialogflow_helpers import detect_intent_text
 
 
 def start(update: Update, context: CallbackContext):
     update.message.reply_text("Здравствуйте")
 
 
-def detect_intent_text(project_id, session_id, text, language_code='ru'):
-    session_client = dialogflow.SessionsClient()
-    session = session_client.session_path(project_id, session_id)
-
-    text_input = dialogflow.TextInput(text=text, language_code=language_code)
-    query_input = dialogflow.QueryInput(text=text_input)
-
-    response = session_client.detect_intent(
-        request={"session": session, "query_input": query_input}
-    )
-
-    return response.query_result.fulfillment_text
-
-
-def echo(update: Update, context: CallbackContext):
+def echo(update: Update, context: CallbackContext, project_id):
     text = update.message.text
-    user_id = str(update.effective_user.id)
+    user_id = f"tg-{update.effective_user.id}"
 
     response_text = detect_intent_text(
-        project_id=env("PROJECT_ID"),
+        project_id=project_id,
         session_id=user_id,
         text=text
     )
@@ -40,14 +27,20 @@ def echo(update: Update, context: CallbackContext):
 def main():
     env.read_env()
 
-    TOKEN = env("TG_TOKEN")
+    token = env("TG_TOKEN")
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = env("GOOGLE_APPLICATION_CREDENTIALS")
+    project_id = env("PROJECT_ID")
 
-    updater = Updater(TOKEN, use_context=True)
+    updater = Updater(token, use_context=True)
     dp = updater.dispatcher
 
     dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
+    dp.add_handler(
+        MessageHandler(
+            Filters.text & ~Filters.command,
+            lambda update, context: echo(update, context, project_id)
+        )
+    )
 
     updater.start_polling()
     updater.idle()
