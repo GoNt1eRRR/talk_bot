@@ -66,6 +66,7 @@ TG_TOKEN= Ваш тг токен
 GOOGLE_APPLICATION_CREDENTIALS= Путь файла с ключами от гугл
 PROJECT_ID= название проекта на Google Project
 VK_TOKEN= Ваш вк токен
+QUESTIONS_FILE= Путь к вашему файлу с вопросами и ответами
 ```
 
 ## Запуск 
