@@ -27,17 +27,14 @@ def create_intent(project_id, display_name, training_phrases_parts, message_text
 
 def main():
     env.read_env()
-    PROJECT_ID = env('PROJECT_ID')
+    project_id = env('PROJECT_ID')
+    questions_file = env('QUESTIONS_FILE')
 
-    with open('questions.json', 'r', encoding='utf8') as my_file:
-        questions_json = my_file.read()
+    with open(questions_file, 'r', encoding='utf8') as file:
+        questions = json.load(file)
 
-    questions = json.loads(questions_json)
-
-    work_questions = questions['Устройство на работу']['questions']
-    work_answer = questions['Устройство на работу']['answer']
-
-    create_intent(PROJECT_ID,'Как устроиться к вам на работу', work_questions, work_answer)
+    for topic, data in questions.items():
+        create_intent(project_id, topic, data['questions'], data['answer'])
 
 
 if __name__ == "__main__":
